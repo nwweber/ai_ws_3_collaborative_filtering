@@ -26,6 +26,9 @@ class UserDistanceTest(unittest.TestCase):
         for expected, result in zip(expecteds, cf.find_k_closest_users(self.ratings_frame, 0, 2)):
             self.assertEqual(expected, result)
 
+    def test_calc_item_distance_cosine(self):
+        raise NotImplementedError
+
 # class AccuracyTest(unittest.TestCase):
 # def testAccuray(self):
 # """"accuracy is calculated correctly"""
