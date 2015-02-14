@@ -4,7 +4,7 @@ import pandas as pd
 import math
 
 
-def calc_distances(ratings_frame, uid):
+def calc_distances_euclidean(ratings_frame, uid):
     """
     calculate euclidean distances from this user
     :param ratings_frame: pd.Frame, index = itemId, columns = users
@@ -19,10 +19,11 @@ def calc_distances(ratings_frame, uid):
 # find the k closest users to a given user u
 
 def find_k_closest_users(ratings_frame, uid, k):
-    distance_series = calc_distances(ratings_frame, uid)
+    distance_series = calc_distances_euclidean(ratings_frame, uid)
     distance_series = distance_series.order(ascending=False)
+    del distance_series[uid]
     assert len(distance_series) >= k
-    return distance_series.index[0:(k + 1)]
+    return list(distance_series.index[0:(k + 1)])
 
 
 if __name__ == "__main__":
