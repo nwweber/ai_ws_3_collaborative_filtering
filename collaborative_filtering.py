@@ -1,3 +1,5 @@
+import os
+
 __author__ = 'niklas'
 
 import pandas as pd
@@ -37,8 +39,19 @@ def find_k_closest_users(ratings_frame, uid, k):
 
 
 def load_rating_data():
-    pass
-
+    data_path = os.path.join("data", "BX-CSV-Dump", "BX-Book-Ratings.csv")
+    ratings = pd.io.parsers.read_csv(data_path, sep=";", encoding="latin1")
+    books = ratings["ISBN"].unique()
+    users = ratings["User-ID"].unique()
+    ratings_dict = {user: {} for user in users}
+    for isbn in books:
+        for user_id in users:
+            rating = ratings[(ratings["ISBN"] == isbn) & (ratings["User-ID"] == user_id)]
+            rating = rating["Book-Rating"]
+            if len(rating) > 0:
+                rating = rating[0]
+                ratings_dict[user_id][isbn] = rating
+    return pd.DataFrame(ratings_dict)
 
 def find_k_closest_items(ratings_frame, param, param1):
     pass
@@ -58,7 +71,9 @@ def predict_rating(user, item, ratings_frame):
 
 if __name__ == "__main__":
     # load data
+    print("loading data")
     ratings_frame = load_rating_data()
+    print("done loading data")
     # find 10 closest users
     closest_users = find_k_closest_users(ratings_frame, 170155, 10)
     print("closest users:", closest_users)
