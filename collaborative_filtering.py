@@ -45,7 +45,9 @@ def load_rating_data():
     users = ratings["User-ID"].unique()
     ratings_dict = {user: {} for user in users}
     for isbn in books:
+        print("processing book", isbn)
         for user_id in users:
+            print("processing user", user_id)
             rating = ratings[(ratings["ISBN"] == isbn) & (ratings["User-ID"] == user_id)]
             rating = rating["Book-Rating"]
             if len(rating) > 0:
