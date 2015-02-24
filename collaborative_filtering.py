@@ -1,9 +1,9 @@
-import os
-
 __author__ = 'niklas'
 
+import os
 import pandas as pd
 import math
+
 
 def calc_item_distance_cosine(ratings_frame, iid):
     """
@@ -16,6 +16,7 @@ def calc_item_distance_cosine(ratings_frame, iid):
     item_ratings = rf_trans[iid]
     raise NotImplementedError
 
+
 def calc_distances_euclidean(ratings_frame, uid):
     """
     calculate euclidean distances from this user
@@ -24,7 +25,7 @@ def calc_distances_euclidean(ratings_frame, uid):
     :return: pd.Series, index = user id, value = distance
     """
     user = ratings_frame[uid]
-    dists_dict = {column: math.sqrt(((series - user)**2).sum()) for column, series in ratings_frame.iteritems()}
+    dists_dict = {column: math.sqrt(((series - user) ** 2).sum()) for column, series in ratings_frame.iteritems()}
     return pd.Series(dists_dict)
 
 
@@ -41,6 +42,14 @@ def find_k_closest_users(ratings_frame, uid, k):
 def load_rating_data():
     data_path = os.path.join("data", "BX-CSV-Dump", "BX-Book-Ratings.csv")
     ratings = pd.io.parsers.read_csv(data_path, sep=";", encoding="latin1")
+    grouped = ratings.groupby("ISBN")
+
+
+
+
+def load_rating_data_old():
+    data_path = os.path.join("data", "BX-CSV-Dump", "BX-Book-Ratings.csv")
+    ratings = pd.io.parsers.read_csv(data_path, sep=";", encoding="latin1")
     books = ratings["ISBN"].unique()
     users = ratings["User-ID"].unique()
     ratings_dict = {user: {} for user in users}
@@ -54,6 +63,7 @@ def load_rating_data():
                 rating = rating[0]
                 ratings_dict[user_id][isbn] = rating
     return pd.DataFrame(ratings_dict)
+
 
 def find_k_closest_items(ratings_frame, param, param1):
     pass
@@ -97,5 +107,5 @@ if __name__ == "__main__":
         if pred_rating == rating:
             correct_predictions += 1
     nr_deleted_values = len(deleted_values)
-    accuracy = correct_predictions/ nr_deleted_values
+    accuracy = correct_predictions / nr_deleted_values
     print("#deleted: ", nr_deleted_values, "accuracy: ", accuracy)
