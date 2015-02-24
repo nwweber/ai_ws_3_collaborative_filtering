@@ -3,20 +3,21 @@ __author__ = 'niklas'
 __author__ = 'niklas'
 
 import unittest
-import collaborative_filtering as cf
+import cfiltering_transactions as cf
 import pandas as pd
 import math
+import numpy as np
 
 
 class UserDistanceTest(unittest.TestCase):
     def setUp(self):
-        self.ratings = pd.DataFrame(data={"user": range(3),
-                                          "item": range(3),
-                                          "rating": range(3)})
+        self.ratings = pd.DataFrame(data={"user": [0, 1]*2,
+                                          "item": [10, 10, 11, 12],
+                                          "rating": [1, 4, 2, 4]})
 
     def test_calc_distances(self):
         dists = cf.calc_distances_euclidean(self.ratings, 0)
-        expected = pd.Series([0, 0, math.sqrt(3)])
+        expected = pd.Series(data=[math.sqrt(3**2)], index=[1])
         self.assertTrue(expected.equals(dists))
 
     def test_find_k_closest_users(self):

@@ -5,9 +5,33 @@ import pandas as pd
 import math
 
 
+def euclidean_distance(series_tuple):
+    s1, s2 = series_tuple
+
+
+
+def calc_distances_euclidean(ratings, base_uid):
+    """
+    Calculate Euclidean distances of other users to user indicated by base_uid
+    Distance = Eucl. dist. between vectors of (shared) ratings
+    :param ratings: ratings transactions frame
+    :param base_uid: compare other users ot this
+    :return: pd.Series, index = uid, data = distance to base_uid
+    """
+    base_user_ratings = ratings[ratings["user"] == base_uid]
+    base_user_ratings = base_user_ratings.set_index("item")
+    base_user_ratings = base_user_ratings["rating"]
+    other_ratings = ratings[ratings["user"] != base_uid]
+    other_ratings = other_ratings.set_index("item")
+    other_ratings = other_ratings["rating"]
+    euclidean_distance(base_user_ratings.align(other_ratings, join="inner"))
+    return ret_series
+
+
 def load_rating_data():
     data_path = os.path.join("data", "BX-CSV-Dump", "BX-Book-Ratings.csv")
     ratings = pd.io.parsers.read_csv(data_path, sep=";", encoding="latin1")
+    ratings.columns = ["user", "item", "rating"]
     return ratings
 
 
@@ -59,3 +83,5 @@ if __name__ == "__main__":
     nr_deleted_values = len(deleted_values)
     accuracy = correct_predictions / nr_deleted_values
     print("#deleted: ", nr_deleted_values, "accuracy: ", accuracy)
+
+
