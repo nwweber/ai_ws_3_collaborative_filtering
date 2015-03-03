@@ -1,4 +1,5 @@
 import time
+import multiprocessing
 
 __author__ = 'niklas'
 
@@ -39,11 +40,9 @@ def calc_distances_euclidean(ratings, base_uid):
     # for each other user:
     dists = {}
     nr_other_users = len(other_uids)
-    for i, other_user in enumerate(other_uids):
-        if i % 1000 == 0:
-            print("processing other user", other_user)
-            print("this is user ", i, "out of", nr_other_users)
-        # get other user's ratings
+
+    def _calc_distance(other_user):
+         # get other user's ratings
         other_ratings = find_ratings(other_user, ratings)
         # reduce to common ratings
         common_ratings = pd.merge(base_ratings, other_ratings, left_index=True, right_index=True, how="inner")
@@ -53,9 +52,29 @@ def calc_distances_euclidean(ratings, base_uid):
             # print("calculated the distance as", dist)
         else:
             dist = np.NAN
-        dists[other_user] = dist
-    # return user<->rating pairs/series
-    return pd.Series(dists)
+        return other_user, dist
+
+    pool = multiprocessing.Pool()
+    dist_tuples = pool.map(_calc_distance, other_uids)
+    return {uid: dist for (uid, dist) in dist_tuples}
+    #
+    # for i, other_user in enumerate(other_uids):
+    #     if i % 1000 == 0:
+    #         print("processing other user", other_user)
+    #         print("this is user ", i, "out of", nr_other_users)
+    #     # get other user's ratings
+    #     other_ratings = find_ratings(other_user, ratings)
+    #     # reduce to common ratings
+    #     common_ratings = pd.merge(base_ratings, other_ratings, left_index=True, right_index=True, how="inner")
+    #     # calc distance to base user
+    #     if len(common_ratings) > 0:
+    #         dist = ((common_ratings["rating_x"] - common_ratings["rating_y"])**2).sum()
+    #         # print("calculated the distance as", dist)
+    #     else:
+    #         dist = np.NAN
+    #     dists[other_user] = dist
+    # # return user<->rating pairs/series
+    # return pd.Series(dists)
 
 
 def load_rating_data():
