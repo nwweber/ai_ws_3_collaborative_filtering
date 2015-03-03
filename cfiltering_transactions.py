@@ -36,6 +36,7 @@ def _calc_distances_process(arg_dict):
     q.put((other_user, dist))
     return None
 
+
 def calc_distances_euclidean(ratings, base_uid):
     """
     Calculate Euclidean distances of other users to user indicated by base_uid
