@@ -18,6 +18,24 @@ def find_ratings(uid, ratings):
     return ratings_series
 
 
+def _calc_distances_process(arg_dict):
+    base_ratings = arg_dict["base_ratings"]
+    ratings = arg_dict["ratings"]
+    other_user = arg_dict["other_user"]
+    q = arg_dict["q"]
+    # get other user's ratings
+    other_ratings = find_ratings(other_user, ratings)
+    # reduce to common ratings
+    common_ratings = pd.merge(base_ratings, other_ratings, left_index=True, right_index=True, how="inner")
+    # calc distance to base user
+    if len(common_ratings) > 0:
+        dist = ((common_ratings["rating_x"] - common_ratings["rating_y"])**2).sum()
+        # print("calculated the distance as", dist)
+    else:
+        dist = np.NAN
+    q.put((other_user, dist))
+    return None
+
 def calc_distances_euclidean(ratings, base_uid):
     """
     Calculate Euclidean distances of other users to user indicated by base_uid
@@ -41,22 +59,18 @@ def calc_distances_euclidean(ratings, base_uid):
     dists = {}
     nr_other_users = len(other_uids)
 
-    def _calc_distance(other_user):
-        # get other user's ratings
-        other_ratings = find_ratings(other_user, ratings)
-        # reduce to common ratings
-        common_ratings = pd.merge(base_ratings, other_ratings, left_index=True, right_index=True, how="inner")
-        # calc distance to base user
-        if len(common_ratings) > 0:
-            dist = ((common_ratings["rating_x"] - common_ratings["rating_y"])**2).sum()
-            # print("calculated the distance as", dist)
-        else:
-            dist = np.NAN
-        return other_user, dist
-
+    q = multiprocessing.SimpleQueue()
     pool = multiprocessing.Pool()
-    dist_tuples = pool.map(_calc_distance, other_uids)
-    return {uid: dist for (uid, dist) in dist_tuples}
+    # p = multiprocessing.Process(target=_calc_distances_process, args=(base_ratings, ratings, other_uids[0], q))
+    # p.start()
+    # p.join()
+    # dist_tuples = []
+    # while not q.empty():
+    #     dist_tuples.append(q.get())
+    pool_iterables = [{"base_ratings": base_ratings, "ratings": ratings, "q": q, "other_user": other_user} for other_user in other_uids]
+    dist_tuples = pool.map(_calc_distances_process, pool_iterables)
+    return pd.Series({uid: dist for (uid, dist) in dist_tuples})
+
     #
     # for i, other_user in enumerate(other_uids):
     #     if i % 1000 == 0:
