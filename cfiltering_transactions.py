@@ -42,7 +42,7 @@ def calc_distances_euclidean(ratings, base_uid):
     nr_other_users = len(other_uids)
 
     def _calc_distance(other_user):
-         # get other user's ratings
+        # get other user's ratings
         other_ratings = find_ratings(other_user, ratings)
         # reduce to common ratings
         common_ratings = pd.merge(base_ratings, other_ratings, left_index=True, right_index=True, how="inner")
