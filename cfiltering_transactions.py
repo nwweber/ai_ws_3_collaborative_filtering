@@ -18,11 +18,8 @@ def find_ratings(uid, ratings):
     return ratings_series
 
 
-def _calc_distances_process(arg_dict):
-    base_ratings = arg_dict["base_ratings"]
-    ratings = arg_dict["ratings"]
-    other_user = arg_dict["other_user"]
-    q = arg_dict["q"]
+def _calc_distances_process(base_ratings, ratings, other_user):
+    print(base_ratings, ratings, other_user)
     # get other user's ratings
     other_ratings = find_ratings(other_user, ratings)
     # reduce to common ratings
@@ -33,8 +30,7 @@ def _calc_distances_process(arg_dict):
         # print("calculated the distance as", dist)
     else:
         dist = np.NAN
-    q.put((other_user, dist))
-    return None
+    return other_user, dist
 
 
 def calc_distances_euclidean(ratings, base_uid):
@@ -59,37 +55,14 @@ def calc_distances_euclidean(ratings, base_uid):
     # for each other user:
     dists = {}
     nr_other_users = len(other_uids)
-
-    q = multiprocessing.SimpleQueue()
     pool = multiprocessing.Pool()
-    # p = multiprocessing.Process(target=_calc_distances_process, args=(base_ratings, ratings, other_uids[0], q))
-    # p.start()
-    # p.join()
-    # dist_tuples = []
-    # while not q.empty():
-    #     dist_tuples.append(q.get())
-    pool_iterables = [{"base_ratings": base_ratings, "ratings": ratings, "q": q, "other_user": other_user} for other_user in other_uids]
-    dist_tuples = pool.map(_calc_distances_process, pool_iterables)
+    # pool_iterables = [{"base_ratings": base_ratings, "ratings": ratings, "other_user": other_user} for other_user in other_uids]
+    pool_iterables = []
+    for other_user in other_uids:
+        arg_dict = {"base_ratings": base_ratings, "ratings": ratings, "other_user": other_user}
+        pool_iterables.append(arg_dict)
+    dist_tuples = pool.starmap(_calc_distances_process, pool_iterables)
     return pd.Series({uid: dist for (uid, dist) in dist_tuples})
-
-    #
-    # for i, other_user in enumerate(other_uids):
-    #     if i % 1000 == 0:
-    #         print("processing other user", other_user)
-    #         print("this is user ", i, "out of", nr_other_users)
-    #     # get other user's ratings
-    #     other_ratings = find_ratings(other_user, ratings)
-    #     # reduce to common ratings
-    #     common_ratings = pd.merge(base_ratings, other_ratings, left_index=True, right_index=True, how="inner")
-    #     # calc distance to base user
-    #     if len(common_ratings) > 0:
-    #         dist = ((common_ratings["rating_x"] - common_ratings["rating_y"])**2).sum()
-    #         # print("calculated the distance as", dist)
-    #     else:
-    #         dist = np.NAN
-    #     dists[other_user] = dist
-    # # return user<->rating pairs/series
-    # return pd.Series(dists)
 
 
 def load_rating_data():
